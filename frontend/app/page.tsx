@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { BarChart3, Gauge, HelpCircle, RadioTower, RefreshCw } from "lucide-react";
+import { BarChart3, Gauge, HelpCircle, RadioTower } from "lucide-react";
 import { AlertsPanel } from "@/components/alerts-panel";
 import { FactorMatrix } from "@/components/factor-matrix";
+import { LocalTime } from "@/components/local-time";
+import { RefreshButton } from "@/components/refresh-button";
 import { ReplayTable } from "@/components/replay-table";
 import { SymbolCard } from "@/components/symbol-card";
 import { ContinuationChart } from "@/charts/continuation-chart";
@@ -42,10 +44,10 @@ export default async function Home() {
 
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between text-sm text-ink/60">
-          <span>Generated {new Date(dashboard.generated_at).toLocaleString()}</span>
-          <button className="grid h-9 w-9 place-items-center rounded-md border border-line bg-panel hover:bg-white" title="Refresh dashboard">
-            <RefreshCw className="h-4 w-4" />
-          </button>
+          <span>
+            Generated <LocalTime value={dashboard.generated_at} />
+          </span>
+          <RefreshButton />
         </div>
 
         <section className="grid gap-4 lg:grid-cols-3">
