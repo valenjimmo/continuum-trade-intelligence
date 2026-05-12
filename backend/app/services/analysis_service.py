@@ -9,13 +9,21 @@ from app.engines.correlation import CorrelationEngine
 from app.engines.regime import MarketRegimeEngine
 from app.engines.structure import MarketStructureEngine
 from app.repositories.market_data import MarketDataRepository
-from app.schemas.market import AlertSummary, Confidence, DashboardSnapshot, ReplayEvent, SymbolAnalysis, TrendState
+from app.schemas.market import (
+    AlertSummary,
+    AppSnapshot,
+    Confidence,
+    DashboardSnapshot,
+    ReplayEvent,
+    SymbolAnalysis,
+    TrendState,
+)
 
 
 class AnalysisService:
     def __init__(self, settings: Optional[Settings] = None) -> None:
         self.settings = settings or get_settings()
-        self.market_data = MarketDataRepository()
+        self.market_data = MarketDataRepository(self.settings)
         self.structure_engine = MarketStructureEngine()
         self.continuation_engine = ContinuationEngine()
         self.regime_engine = MarketRegimeEngine()
@@ -62,6 +70,9 @@ class AnalysisService:
         ]
         return DashboardSnapshot(
             generated_at=datetime.now(timezone.utc),
+            data_mode=self.settings.data_mode,
+            data_feed=self.settings.alpaca_data_feed if self.settings.data_mode.lower() == "alpaca" else "mock",
+            refresh_seconds=self.settings.dashboard_refresh_seconds,
             symbols=enriched,
             market_bias=bias,
             regime=primary_regime,
@@ -69,8 +80,11 @@ class AnalysisService:
         )
 
     def alerts(self) -> list[AlertSummary]:
+        return self.alerts_from_dashboard(self.dashboard())
+
+    def alerts_from_dashboard(self, dashboard: DashboardSnapshot) -> list[AlertSummary]:
         alerts: list[AlertSummary] = []
-        for item in self.dashboard().symbols:
+        for item in dashboard.symbols:
             if item.continuation_score >= 70 and item.correlation_confirmation:
                 alerts.append(
                     AlertSummary(
@@ -86,8 +100,11 @@ class AnalysisService:
         return alerts
 
     def replay_events(self) -> list[ReplayEvent]:
+        return self.replay_events_from_dashboard(self.dashboard())
+
+    def replay_events_from_dashboard(self, dashboard: DashboardSnapshot) -> list[ReplayEvent]:
         events: list[ReplayEvent] = []
-        for index, item in enumerate(self.dashboard().symbols):
+        for index, item in enumerate(dashboard.symbols):
             passed = item.continuation_score >= 62
             events.append(
                 ReplayEvent(
@@ -103,6 +120,14 @@ class AnalysisService:
                 )
             )
         return events
+
+    def app_snapshot(self) -> AppSnapshot:
+        dashboard = self.dashboard()
+        return AppSnapshot(
+            dashboard=dashboard,
+            alerts=self.alerts_from_dashboard(dashboard),
+            replay=self.replay_events_from_dashboard(dashboard),
+        )
 
     @staticmethod
     def _summary(symbol: str, trend: TrendState, score: int) -> str:

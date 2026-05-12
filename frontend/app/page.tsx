@@ -1,22 +1,25 @@
 import Link from "next/link";
 import { BarChart3, Gauge, HelpCircle, RadioTower } from "lucide-react";
 import { AlertsPanel } from "@/components/alerts-panel";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { FactorMatrix } from "@/components/factor-matrix";
 import { LocalTime } from "@/components/local-time";
 import { RefreshButton } from "@/components/refresh-button";
 import { ReplayTable } from "@/components/replay-table";
 import { SymbolCard } from "@/components/symbol-card";
 import { ContinuationChart } from "@/charts/continuation-chart";
-import { getAlerts, getDashboard, getReplay } from "@/lib/api";
+import { getOverview } from "@/lib/api";
 import { trendTone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [dashboard, alerts, replay] = await Promise.all([getDashboard(), getAlerts(), getReplay()]);
+  const { dashboard, alerts, replay } = await getOverview();
+  const refreshSeconds = Number(process.env.NEXT_PUBLIC_DASHBOARD_REFRESH_SECONDS ?? dashboard.refresh_seconds ?? 15);
 
   return (
     <main className="min-h-screen">
+      <AutoRefresh seconds={refreshSeconds} />
       <header className="border-b border-line bg-panel">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-5 md:flex-row md:items-center md:justify-between">
           <div>
@@ -44,9 +47,15 @@ export default async function Home() {
 
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between text-sm text-ink/60">
-          <span>
-            Generated <LocalTime value={dashboard.generated_at} />
-          </span>
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+            <span>
+              Generated <LocalTime value={dashboard.generated_at} />
+            </span>
+            <span className="rounded-full border border-line bg-panel px-2 py-1 text-xs font-medium uppercase tracking-[0.08em]">
+              {dashboard.data_mode} / {dashboard.data_feed}
+            </span>
+            <span className="text-xs">Auto-refresh {refreshSeconds}s</span>
+          </div>
           <RefreshButton />
         </div>
 

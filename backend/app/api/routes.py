@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.schemas.market import AlertSummary, DashboardSnapshot, ReplayEvent, SymbolAnalysis
+from app.schemas.market import AlertSummary, AppSnapshot, DashboardSnapshot, ReplayEvent, SymbolAnalysis
 from app.services.analysis_service import AnalysisService
 
 router = APIRouter()
@@ -15,6 +15,11 @@ def health() -> dict[str, str]:
 @router.get("/dashboard", response_model=DashboardSnapshot, tags=["analysis"])
 def dashboard() -> DashboardSnapshot:
     return service.dashboard()
+
+
+@router.get("/overview", response_model=AppSnapshot, tags=["analysis"])
+def overview() -> AppSnapshot:
+    return service.app_snapshot()
 
 
 @router.get("/symbols/{symbol}", response_model=SymbolAnalysis, tags=["analysis"])

@@ -26,12 +26,18 @@ services:
       context: ./backend
     environment:
       ENVIRONMENT: development
-      DATA_MODE: mock
+      DATA_MODE: ${DATA_MODE:-mock}
       DATABASE_URL: postgresql+psycopg://tcip:tcip@postgres:5432/tcip
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: '["http://localhost:3000"]'
       TRACKED_SYMBOLS: '["SPY","QQQ","IWM"]'
       CORRELATION_SYMBOLS: '["SPY","QQQ","IWM","VIX","DXY","TNX"]'
+      DASHBOARD_REFRESH_SECONDS: ${DASHBOARD_REFRESH_SECONDS:-15}
+      ALPACA_API_KEY_ID: ${ALPACA_API_KEY_ID:-}
+      ALPACA_API_SECRET_KEY: ${ALPACA_API_SECRET_KEY:-}
+      ALPACA_DATA_FEED: ${ALPACA_DATA_FEED:-iex}
+      ALPACA_BAR_TIMEFRAME: ${ALPACA_BAR_TIMEFRAME:-5Min}
+      ALPACA_BARS_LIMIT: ${ALPACA_BARS_LIMIT:-96}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
@@ -49,6 +55,7 @@ services:
     environment:
       API_BASE_URL: http://backend:8000/api/v1
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
+      NEXT_PUBLIC_DASHBOARD_REFRESH_SECONDS: ${DASHBOARD_REFRESH_SECONDS:-15}
     ports:
       - "3000:3000"
     depends_on:

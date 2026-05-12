@@ -61,7 +61,7 @@ const faqs = [
   },
   {
     question: "What data is used right now?",
-    answer: "The MVP currently uses deterministic mock market data so the full product flow can run without vendor credentials. The repository boundary is ready to swap in Alpaca, Yahoo, Polygon, or another market data adapter."
+    answer: "The app can run in mock mode or Alpaca mode. Mock mode uses deterministic generated bars. Alpaca mode pulls recent market-data bars for the tracked ETFs on each dashboard refresh."
   },
   {
     question: "What should I look at first?",

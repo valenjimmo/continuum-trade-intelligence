@@ -89,6 +89,9 @@ class SymbolAnalysis(BaseModel):
 
 class DashboardSnapshot(BaseModel):
     generated_at: datetime
+    data_mode: str
+    data_feed: str
+    refresh_seconds: int
     symbols: list[SymbolAnalysis]
     market_bias: TrendState
     regime: RegimeType
@@ -115,3 +118,9 @@ class ReplayEvent(BaseModel):
     max_favorable_excursion: float
     max_adverse_excursion: float
     failure_reason: Optional[str] = None
+
+
+class AppSnapshot(BaseModel):
+    dashboard: DashboardSnapshot
+    alerts: list[AlertSummary]
+    replay: list[ReplayEvent]

@@ -51,6 +51,9 @@ export type SymbolAnalysis = {
 
 export type DashboardSnapshot = {
   generated_at: string;
+  data_mode: string;
+  data_feed: string;
+  refresh_seconds: number;
   symbols: SymbolAnalysis[];
   market_bias: TrendState;
   regime: RegimeType;
@@ -77,4 +80,10 @@ export type ReplayEvent = {
   max_favorable_excursion: number;
   max_adverse_excursion: number;
   failure_reason: string | null;
+};
+
+export type AppSnapshot = {
+  dashboard: DashboardSnapshot;
+  alerts: AlertSummary[];
+  replay: ReplayEvent[];
 };

@@ -45,13 +45,32 @@ infra/      Reserved for deployment IaC
 scripts/    Local developer scripts
 ```
 
-## MVP Scope
+## Data Modes
 
-The current app uses deterministic mock market data so the full product loop works immediately. Replace `backend/app/repositories/market_data.py` with Alpaca/Yahoo/Polygon adapters when credentials and data contracts are ready.
+The app supports two data modes:
+
+- `DATA_MODE=mock`: deterministic generated bars so the full product loop works without API keys.
+- `DATA_MODE=alpaca`: pulls recent Alpaca market-data bars for the tracked ETFs on each dashboard refresh.
+
+For Alpaca, add these values to `.env`:
+
+```env
+DATA_MODE=alpaca
+ALPACA_API_KEY_ID=your_key_here
+ALPACA_API_SECRET_KEY=your_secret_here
+ALPACA_DATA_FEED=iex
+ALPACA_BAR_TIMEFRAME=5Min
+DASHBOARD_REFRESH_SECONDS=15
+```
+
+Use `ALPACA_DATA_FEED=iex` for the free/basic Alpaca data plan. Use `sip` only if your Alpaca account has SIP access.
+
+## MVP Scope
 
 Included endpoints:
 
 - `GET /api/v1/health`
+- `GET /api/v1/overview`
 - `GET /api/v1/dashboard`
 - `GET /api/v1/symbols/{symbol}`
 - `GET /api/v1/alerts`

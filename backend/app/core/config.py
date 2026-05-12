@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     tracked_symbols: list[str] = Field(default_factory=lambda: ["SPY", "QQQ", "IWM"])
     correlation_symbols: list[str] = Field(default_factory=lambda: ["SPY", "QQQ", "IWM", "VIX", "DXY", "TNX"])
     data_mode: str = "mock"
+    alpaca_api_key_id: Optional[str] = None
+    alpaca_api_secret_key: Optional[str] = None
+    alpaca_data_feed: str = "iex"
+    alpaca_bar_timeframe: str = "5Min"
+    alpaca_bars_limit: int = 96
+    dashboard_refresh_seconds: int = 15
     discord_webhook_url: Optional[str] = None
     telegram_bot_token: Optional[str] = None
     telegram_chat_id: Optional[str] = None
