@@ -1,4 +1,5 @@
-import { BarChart3, Gauge, RadioTower, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { BarChart3, Gauge, HelpCircle, RadioTower, RefreshCw } from "lucide-react";
 import { AlertsPanel } from "@/components/alerts-panel";
 import { FactorMatrix } from "@/components/factor-matrix";
 import { ReplayTable } from "@/components/replay-table";
@@ -66,6 +67,16 @@ export default async function Home() {
 
         <FactorMatrix symbols={dashboard.symbols} />
         <ReplayTable events={replay} />
+
+        <footer className="flex justify-center border-t border-line py-6">
+          <Link
+            href="/faq"
+            className="inline-flex items-center gap-2 rounded-md border border-line bg-panel px-3 py-2 text-sm font-medium text-ink/70 hover:bg-white hover:text-ink"
+          >
+            <HelpCircle className="h-4 w-4" />
+            FAQ and methodology
+          </Link>
+        </footer>
       </div>
     </main>
   );
