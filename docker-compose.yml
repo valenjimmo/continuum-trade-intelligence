@@ -5,8 +5,6 @@ services:
       POSTGRES_DB: tcip
       POSTGRES_USER: tcip
       POSTGRES_PASSWORD: tcip
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,8 +15,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -28,12 +24,17 @@ services:
   backend:
     build:
       context: ./backend
-    env_file:
-      - .env
     environment:
+      ENVIRONMENT: development
+      DATA_MODE: mock
       DATABASE_URL: postgresql+psycopg://tcip:tcip@postgres:5432/tcip
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: '["http://localhost:3000"]'
+      TRACKED_SYMBOLS: '["SPY","QQQ","IWM"]'
+      CORRELATION_SYMBOLS: '["SPY","QQQ","IWM","VIX","DXY","TNX"]'
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
     ports:
       - "8000:8000"
     depends_on:
