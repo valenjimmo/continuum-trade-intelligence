@@ -1,4 +1,5 @@
 from app.services.analysis_service import AnalysisService
+from app.services.mean_reversion_service import MeanReversionService
 from app.services.strategy_service import StrategyService
 
 
@@ -26,3 +27,13 @@ def test_strategy_dashboard_exposes_metrics_and_trades() -> None:
     assert dashboard.metrics.trade_count > 0
     assert dashboard.equity_curve
     assert {item.symbol for item in dashboard.symbol_performance} == {"SPY", "QQQ", "IWM"}
+
+
+def test_mean_reversion_terminal_exposes_single_ticker_strip() -> None:
+    snapshot = MeanReversionService().terminal("SPY")
+
+    assert snapshot.symbol == "SPY"
+    assert snapshot.candles_1h
+    assert len(snapshot.metrics) == 6
+    assert snapshot.signal.startswith("STRATEGY:")
+    assert snapshot.selected_contract.symbol.startswith("SPY")

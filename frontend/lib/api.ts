@@ -2,6 +2,7 @@ import type {
   AlertSummary,
   AppSnapshot,
   DashboardSnapshot,
+  MeanReversionTerminalSnapshot,
   ReplayEvent,
   StrategyDashboard,
   StrategyDefinition
@@ -40,4 +41,8 @@ export function getStrategies() {
 
 export function getStrategyDashboard(strategyId = "ema_9_21", timeframe = "5Min") {
   return getJson<StrategyDashboard>(`/strategies/${strategyId}/dashboard?timeframe=${timeframe}`);
+}
+
+export function getMeanReversionTerminal(symbol = "SPY") {
+  return getJson<MeanReversionTerminalSnapshot>(`/strategies/mean-reversion/${encodeURIComponent(symbol)}`);
 }

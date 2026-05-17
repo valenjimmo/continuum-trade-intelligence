@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, LineChart } from "lucide-react";
+import { Activity, CandlestickChart, LineChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { href: "/", label: "Trend Continuation", icon: Activity },
-  { href: "/strategies", label: "Strategy Analytics", icon: LineChart }
+  { href: "/strategies", label: "Strategy Analytics", icon: LineChart },
+  { href: "/strategies/mean-reversion", label: "Options MR", icon: CandlestickChart }
 ];
 
 export function AppTabs() {
@@ -17,7 +18,7 @@ export function AppTabs() {
     <nav className="flex flex-wrap gap-2" aria-label="Analytics workspaces">
       {tabs.map((tab) => {
         const Icon = tab.icon;
-        const active = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
+        const active = tab.href === "/" ? pathname === "/" : pathname === tab.href;
 
         return (
           <Link

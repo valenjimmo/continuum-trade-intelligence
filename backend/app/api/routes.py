@@ -1,13 +1,16 @@
 from fastapi import APIRouter
 
 from app.schemas.market import AlertSummary, AppSnapshot, DashboardSnapshot, ReplayEvent, SymbolAnalysis
+from app.schemas.mean_reversion import MeanReversionTerminalSnapshot
 from app.schemas.strategy import StrategyDashboard, StrategyDefinition
 from app.services.analysis_service import AnalysisService
+from app.services.mean_reversion_service import MeanReversionService
 from app.services.strategy_service import StrategyService
 
 router = APIRouter()
 service = AnalysisService()
 strategy_service = StrategyService()
+mean_reversion_service = MeanReversionService()
 
 
 @router.get("/health", tags=["system"])
@@ -48,3 +51,12 @@ def strategies() -> list[StrategyDefinition]:
 @router.get("/strategies/{strategy_id}/dashboard", response_model=StrategyDashboard, tags=["strategies"])
 def strategy_dashboard(strategy_id: str, timeframe: str = "5Min") -> StrategyDashboard:
     return strategy_service.dashboard(strategy_id=strategy_id, timeframe=timeframe)
+
+
+@router.get(
+    "/strategies/mean-reversion/{symbol}",
+    response_model=MeanReversionTerminalSnapshot,
+    tags=["strategies"],
+)
+def mean_reversion_terminal(symbol: str) -> MeanReversionTerminalSnapshot:
+    return mean_reversion_service.terminal(symbol=symbol)

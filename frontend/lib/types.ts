@@ -163,3 +163,55 @@ export type StrategyDashboard = {
   trades: StrategyTrade[];
   symbol_performance: StrategySymbolPerformance[];
 };
+
+export type TerminalMetricState = "bullish" | "bearish" | "neutral";
+
+export type TerminalCandle = {
+  timestamp: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+};
+
+export type BollingerPoint = {
+  timestamp: string;
+  upper: number;
+  middle: number;
+  lower: number;
+};
+
+export type TerminalMetric = {
+  label: string;
+  value: string;
+  numeric_value: number;
+  state: TerminalMetricState;
+  intensity: number;
+  sub_label: string;
+};
+
+export type SelectedOptionContract = {
+  symbol: string;
+  side: "call" | "put";
+  expiration: string;
+  strike: number;
+  delta: number;
+  implied_volatility: number;
+};
+
+export type MeanReversionTerminalSnapshot = {
+  generated_at: string;
+  symbol: string;
+  price: number;
+  data_mode: string;
+  data_feed: string;
+  candles_1h: TerminalCandle[];
+  bollinger_bands: BollingerPoint[];
+  rsi_1h: number[];
+  adx_1h_series: number[];
+  metrics: TerminalMetric[];
+  selected_contract: SelectedOptionContract;
+  signal: string;
+  signal_state: TerminalMetricState;
+  signal_intensity: number;
+};
