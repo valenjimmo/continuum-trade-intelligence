@@ -46,3 +46,9 @@ export function getStrategyDashboard(strategyId = "ema_9_21", timeframe = "5Min"
 export function getMeanReversionTerminal(symbol = "SPY") {
   return getJson<MeanReversionTerminalSnapshot>(`/strategies/mean-reversion/${encodeURIComponent(symbol)}`);
 }
+
+export function getMeanReversionTerminals(symbols = "SPY,QQQ,IWM") {
+  return getJson<MeanReversionTerminalSnapshot[]>(
+    `/strategies/mean-reversion?symbols=${encodeURIComponent(symbols)}`
+  );
+}

@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta, timezone
+import logging
 from math import sqrt
 from statistics import fmean, pstdev
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
+
+import httpx
 
 from app.core.config import Settings, get_settings
 from app.repositories.market_data import MarketDataRepository
@@ -16,6 +19,7 @@ from app.schemas.mean_reversion import (
 
 
 SignalState = Literal["bullish", "bearish", "neutral"]
+logger = logging.getLogger(__name__)
 
 
 class MeanReversionService:
@@ -78,6 +82,14 @@ class MeanReversionService:
             signal_state=signal_state,
             signal_intensity=signal_intensity,
         )
+
+    def terminals(self, symbols: str) -> list[MeanReversionTerminalSnapshot]:
+        tickers = []
+        for raw_symbol in symbols.split(","):
+            ticker = raw_symbol.strip().upper().replace("-", "").replace("/", "")
+            if ticker and ticker not in tickers:
+                tickers.append(ticker)
+        return [self.terminal(symbol=ticker) for ticker in (tickers or ["SPY"])[:8]]
 
     def _resample(self, bars: list[Bar], group_size: int) -> list[Bar]:
         if not bars:
@@ -211,6 +223,10 @@ class MeanReversionService:
         side: Literal["call", "put"] = "call" if rsi_4h >= 50 else "put"
         strike_step = 1 if price < 100 else 5
         strike = round(round(price / strike_step) * strike_step, 2)
+        alpaca_contract = self._get_alpaca_option_contract(symbol, side, price, strike_step)
+        if alpaca_contract:
+            return alpaca_contract
+
         delta_base = 0.52 + min(0.14, bb_distance / 1000)
         delta = round(delta_base if side == "call" else -delta_base, 2)
         expiration = (datetime.now(timezone.utc).date() + timedelta(days=14)).isoformat()
@@ -224,6 +240,102 @@ class MeanReversionService:
             delta=delta,
             implied_volatility=round((iv_rank + 20) / 100, 2),
         )
+
+    def _get_alpaca_option_contract(
+        self, symbol: str, side: Literal["call", "put"], price: float, strike_step: int
+    ) -> Optional[SelectedOptionContract]:
+        if self.settings.data_mode.lower() != "alpaca":
+            return None
+        if not self.settings.alpaca_api_key_id or not self.settings.alpaca_api_secret_key:
+            return None
+
+        expiration_min = datetime.now(timezone.utc).date() + timedelta(days=7)
+        expiration_max = datetime.now(timezone.utc).date() + timedelta(days=45)
+        strike_floor = round((price * 0.94) / strike_step) * strike_step
+        strike_ceiling = round((price * 1.06) / strike_step) * strike_step
+        headers = {
+            "APCA-API-KEY-ID": self.settings.alpaca_api_key_id,
+            "APCA-API-SECRET-KEY": self.settings.alpaca_api_secret_key,
+        }
+        params = {
+            "feed": "indicative",
+            "limit": 1000,
+            "type": side,
+            "strike_price_gte": strike_floor,
+            "strike_price_lte": strike_ceiling,
+            "expiration_date_gte": expiration_min.isoformat(),
+            "expiration_date_lte": expiration_max.isoformat(),
+        }
+        url = f"https://data.alpaca.markets/v1beta1/options/snapshots/{symbol}"
+
+        try:
+            with httpx.Client(timeout=8) as client:
+                response = client.get(url, headers=headers, params=params)
+                response.raise_for_status()
+                snapshots = response.json().get("snapshots", {})
+        except Exception as exc:
+            logger.warning("Falling back to synthetic options contract for %s after Alpaca error: %s", symbol, exc)
+            return None
+
+        candidates = []
+        for contract_symbol, snapshot in snapshots.items():
+            greeks = snapshot.get("greeks") or {}
+            delta = self._as_float(greeks.get("delta"))
+            implied_volatility = self._as_float(
+                snapshot.get("implied_volatility")
+                or snapshot.get("impliedVolatility")
+                or greeks.get("implied_volatility")
+                or greeks.get("impliedVolatility")
+            )
+            parsed = self._parse_option_symbol(symbol, contract_symbol)
+            if delta is None or implied_volatility is None or parsed is None:
+                continue
+            parsed_expiration, parsed_side, parsed_strike = parsed
+            if parsed_side != side:
+                continue
+            target_delta = 0.55
+            candidates.append(
+                (
+                    abs(abs(delta) - target_delta) + abs(parsed_strike - price) / max(price, 1),
+                    SelectedOptionContract(
+                        symbol=contract_symbol,
+                        side=side,
+                        expiration=parsed_expiration,
+                        strike=parsed_strike,
+                        delta=round(delta, 2),
+                        implied_volatility=round(implied_volatility, 2),
+                    ),
+                )
+            )
+
+        if not candidates:
+            return None
+        return sorted(candidates, key=lambda item: item[0])[0][1]
+
+    def _parse_option_symbol(
+        self, underlying: str, contract_symbol: str
+    ) -> Optional[tuple[str, Literal["call", "put"], float]]:
+        suffix = contract_symbol.removeprefix(underlying)
+        if len(suffix) < 15:
+            return None
+        date_part = suffix[:6]
+        side_part = suffix[6]
+        strike_part = suffix[7:15]
+        if side_part not in {"C", "P"} or not date_part.isdigit() or not strike_part.isdigit():
+            return None
+        year = int(f"20{date_part[:2]}")
+        month = int(date_part[2:4])
+        day = int(date_part[4:6])
+        side: Literal["call", "put"] = "call" if side_part == "C" else "put"
+        return f"{year:04d}-{month:02d}-{day:02d}", side, int(strike_part) / 1000
+
+    def _as_float(self, value: Any) -> Optional[float]:
+        if value is None:
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
 
     def _metric_4h_rsi(self, value: float) -> TerminalMetric:
         state: SignalState = "bullish" if value >= 55 else "bearish" if value <= 45 else "neutral"

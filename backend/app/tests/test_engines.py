@@ -37,3 +37,9 @@ def test_mean_reversion_terminal_exposes_single_ticker_strip() -> None:
     assert len(snapshot.metrics) == 6
     assert snapshot.signal.startswith("STRATEGY:")
     assert snapshot.selected_contract.symbol.startswith("SPY")
+
+
+def test_mean_reversion_terminals_accept_multiple_tickers() -> None:
+    snapshots = MeanReversionService().terminals("SPY, QQQ, SPY")
+
+    assert [snapshot.symbol for snapshot in snapshots] == ["SPY", "QQQ"]

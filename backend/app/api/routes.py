@@ -54,6 +54,15 @@ def strategy_dashboard(strategy_id: str, timeframe: str = "5Min") -> StrategyDas
 
 
 @router.get(
+    "/strategies/mean-reversion",
+    response_model=list[MeanReversionTerminalSnapshot],
+    tags=["strategies"],
+)
+def mean_reversion_terminals(symbols: str = "SPY,QQQ,IWM") -> list[MeanReversionTerminalSnapshot]:
+    return mean_reversion_service.terminals(symbols=symbols)
+
+
+@router.get(
     "/strategies/mean-reversion/{symbol}",
     response_model=MeanReversionTerminalSnapshot,
     tags=["strategies"],
