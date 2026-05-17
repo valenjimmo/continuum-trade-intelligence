@@ -24,7 +24,7 @@ export function TimeframeSelect({ activeTimeframe }: { activeTimeframe: string }
   return (
     <label className="flex min-h-10 items-center gap-2 rounded-md border border-line bg-background px-3 py-2 text-sm text-ink/70">
       <Clock3 className="h-4 w-4" />
-      <span className="font-medium">Bar timeframe</span>
+      <span className="whitespace-nowrap font-medium">Bar timeframe</span>
       <select
         value={activeTimeframe}
         onChange={(event) => updateTimeframe(event.target.value)}

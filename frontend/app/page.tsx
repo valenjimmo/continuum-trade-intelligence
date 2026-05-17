@@ -90,14 +90,14 @@ export default async function Home({ searchParams }: HomeProps) {
           <RefreshButton />
         </div>
 
-        <div className="flex flex-col gap-4 rounded-lg border border-line bg-panel p-4 shadow-panel lg:flex-row lg:items-center lg:justify-between">
-          <div>
+        <div className="flex flex-col gap-3 rounded-lg border border-line bg-panel p-4 shadow-panel lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0 lg:max-w-sm">
             <h2 className="text-sm font-semibold">Data Source and Bar Timeframe</h2>
             <p className="text-sm text-ink/60">
               Bar timeframe controls the candle interval analyzed by the regime engine. Page refresh is separate.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             <DataModeSwitch activeMode={activeDataMode} timeframe={timeframe} />
             <TimeframeSelect activeTimeframe={timeframe} />
           </div>
