@@ -1,10 +1,13 @@
 from fastapi import APIRouter
 
 from app.schemas.market import AlertSummary, AppSnapshot, DashboardSnapshot, ReplayEvent, SymbolAnalysis
+from app.schemas.strategy import StrategyDashboard, StrategyDefinition
 from app.services.analysis_service import AnalysisService
+from app.services.strategy_service import StrategyService
 
 router = APIRouter()
 service = AnalysisService()
+strategy_service = StrategyService()
 
 
 @router.get("/health", tags=["system"])
@@ -35,3 +38,13 @@ def alerts() -> list[AlertSummary]:
 @router.get("/replay", response_model=list[ReplayEvent], tags=["replay"])
 def replay() -> list[ReplayEvent]:
     return service.replay_events()
+
+
+@router.get("/strategies", response_model=list[StrategyDefinition], tags=["strategies"])
+def strategies() -> list[StrategyDefinition]:
+    return strategy_service.list_strategies()
+
+
+@router.get("/strategies/{strategy_id}/dashboard", response_model=StrategyDashboard, tags=["strategies"])
+def strategy_dashboard(strategy_id: str, timeframe: str = "5Min") -> StrategyDashboard:
+    return strategy_service.dashboard(strategy_id=strategy_id, timeframe=timeframe)

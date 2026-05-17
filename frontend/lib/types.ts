@@ -87,3 +87,79 @@ export type AppSnapshot = {
   alerts: AlertSummary[];
   replay: ReplayEvent[];
 };
+
+export type StrategyDefinition = {
+  id: string;
+  name: string;
+  family: string;
+  description: string;
+  supported_timeframes: string[];
+  default_symbols: string[];
+};
+
+export type StrategyMetrics = {
+  total_return_percent: number;
+  win_rate: number;
+  profit_factor: number;
+  max_drawdown_percent: number;
+  average_trade_return_percent: number;
+  risk_score: number;
+  trade_count: number;
+};
+
+export type StrategyTrade = {
+  id: string;
+  symbol: string;
+  side: "long" | "short";
+  entry_time: string;
+  exit_time: string;
+  entry_price: number;
+  exit_price: number;
+  return_percent: number;
+  outcome: "win" | "loss" | "flat";
+  setup_quality: number;
+};
+
+export type StrategySignal = {
+  timestamp: string;
+  symbol: string;
+  action: "watch" | "enter" | "exit";
+  price: number;
+  confidence: number;
+  reason: string;
+};
+
+export type StrategyEquityPoint = {
+  timestamp: string;
+  value: number;
+};
+
+export type StrategyDrawdownPoint = {
+  timestamp: string;
+  drawdown_percent: number;
+};
+
+export type StrategySymbolPerformance = {
+  symbol: string;
+  trades: number;
+  win_rate: number;
+  total_return_percent: number;
+  max_drawdown_percent: number;
+  current_signal: string;
+};
+
+export type StrategyDashboard = {
+  generated_at: string;
+  data_mode: string;
+  data_feed: string;
+  selected_strategy: StrategyDefinition;
+  available_strategies: StrategyDefinition[];
+  symbols: string[];
+  timeframe: string;
+  metrics: StrategyMetrics;
+  equity_curve: StrategyEquityPoint[];
+  drawdown_curve: StrategyDrawdownPoint[];
+  signals: StrategySignal[];
+  trades: StrategyTrade[];
+  symbol_performance: StrategySymbolPerformance[];
+};
