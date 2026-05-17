@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { StrategyDefinition } from "@/lib/types";
 
 export function StrategySelector({
@@ -13,13 +13,14 @@ export function StrategySelector({
   timeframe: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   function update(next: { strategyId?: string; timeframe?: string }) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("strategy", next.strategyId ?? selectedStrategyId);
     params.set("timeframe", next.timeframe ?? timeframe);
-    router.push(`/strategies?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   const selected = strategies.find((strategy) => strategy.id === selectedStrategyId) ?? strategies[0];

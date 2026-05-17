@@ -19,6 +19,7 @@ import type {
   TerminalMetric,
   TerminalMetricState
 } from "@/lib/types";
+import { DisabledPagesLink } from "@/components/disabled-pages-link";
 import { cn } from "@/lib/utils";
 
 const terminalBg = "#0d1117";
@@ -447,6 +448,9 @@ export function MeanReversionTerminal({ snapshots }: { snapshots: MeanReversionT
             }}
           />
         ))}
+        <footer className="flex justify-center pt-2">
+          <DisabledPagesLink />
+        </footer>
       </div>
       {activeChart ? <ChartModal snapshot={activeChart} onClose={() => setActiveChart(null)} /> : null}
     </div>

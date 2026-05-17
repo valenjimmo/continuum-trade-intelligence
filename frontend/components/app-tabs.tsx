@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, CandlestickChart, LineChart } from "lucide-react";
+import { Activity, CandlestickChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { href: "/", label: "Trend Continuation", icon: Activity },
-  { href: "/strategies", label: "Strategy Analytics", icon: LineChart },
   { href: "/strategies/mean-reversion", label: "Options MR", icon: CandlestickChart }
 ];
 

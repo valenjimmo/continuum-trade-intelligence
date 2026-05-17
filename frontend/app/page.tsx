@@ -3,6 +3,7 @@ import { BarChart3, Gauge, HelpCircle, RadioTower } from "lucide-react";
 import { AppTabs } from "@/components/app-tabs";
 import { AlertsPanel } from "@/components/alerts-panel";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { DisabledPagesLink } from "@/components/disabled-pages-link";
 import { FactorMatrix } from "@/components/factor-matrix";
 import { LocalTime } from "@/components/local-time";
 import { RefreshButton } from "@/components/refresh-button";
@@ -83,7 +84,7 @@ export default async function Home() {
         <FactorMatrix symbols={dashboard.symbols} />
         <ReplayTable events={replay} />
 
-        <footer className="flex justify-center border-t border-line py-6">
+        <footer className="flex flex-col items-center gap-4 border-t border-line py-6">
           <Link
             href="/faq"
             className="inline-flex items-center gap-2 rounded-md border border-line bg-panel px-3 py-2 text-sm font-medium text-ink/70 hover:bg-white hover:text-ink"
@@ -91,6 +92,7 @@ export default async function Home() {
             <HelpCircle className="h-4 w-4" />
             FAQ and methodology
           </Link>
+          <DisabledPagesLink />
         </footer>
       </div>
     </main>
