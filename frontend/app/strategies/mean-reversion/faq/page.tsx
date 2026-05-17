@@ -4,7 +4,7 @@ import { ArrowLeft, Circle } from "lucide-react";
 const sections = [
   {
     title: "How To Read The Row",
-    body: "Each ticker gets one horizontal row. Read it left to right: price context first, higher-timeframe filters next, execution filters after that, then options pricing, contract sensitivity, and the final strategy signal."
+    body: "Each ticker gets one horizontal row. Read it left to right: price context first, higher-timeframe filters next, execution filters after that, then options pricing, contract sensitivity, and the final strategy signal. The default list starts with SPY, QQQ, and IWM, then the MAG7 names."
   },
   {
     title: "Chart",
@@ -41,6 +41,14 @@ const sections = [
   {
     title: "Strategy Signal",
     body: "The signal box combines the row states into a final action: LONG CALL, LONG PUT, or WAIT. WAIT means too many filters are neutral or hostile. It is an analysis signal, not an order ticket."
+  },
+  {
+    title: "Rows And Layout",
+    body: "Use Add ticker to append a row. Remove a ticker with the X at the end of its row. Drag the handle at the end of a row to reorder the scanner. The order is saved in the URL and browser storage."
+  },
+  {
+    title: "Expanded Chart",
+    body: "Click any row chart to open a larger version. Only one enlarged chart can be open at a time, so the scanner stays clear and you always know which symbol you are inspecting."
   }
 ];
 

@@ -10,7 +10,7 @@ type MeanReversionPageProps = {
 };
 
 export default async function MeanReversionPage({ searchParams }: MeanReversionPageProps) {
-  const symbols = searchParams?.symbols ?? "SPY,QQQ,IWM";
+  const symbols = searchParams?.symbols ?? "SPY,QQQ,IWM,AAPL,MSFT,NVDA,AMZN,META,GOOGL,TSLA";
   const snapshots = await getMeanReversionTerminals(symbols);
 
   return <MeanReversionTerminal snapshots={snapshots} />;

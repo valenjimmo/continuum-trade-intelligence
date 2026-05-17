@@ -57,6 +57,12 @@ class MeanReversionService:
         ]
         signal_state, signal, signal_intensity = self._signal(metrics, contract)
 
+        display_start = 20 if len(bars_1h) > 56 else 0
+        display_bars = bars_1h[display_start:][-36:]
+        display_bands = bands[display_start:][-36:]
+        display_rsi = rsi_1h[display_start:][-36:]
+        display_adx = adx_1h_series[display_start:][-36:]
+
         return MeanReversionTerminalSnapshot(
             generated_at=datetime.now(timezone.utc),
             symbol=ticker,
@@ -71,11 +77,11 @@ class MeanReversionService:
                     low=bar.low,
                     close=bar.close,
                 )
-                for bar in bars_1h[-36:]
+                for bar in display_bars
             ],
-            bollinger_bands=bands[-36:],
-            rsi_1h=rsi_1h[-36:],
-            adx_1h_series=adx_1h_series[-36:],
+            bollinger_bands=display_bands,
+            rsi_1h=display_rsi,
+            adx_1h_series=display_adx,
             metrics=metrics,
             selected_contract=contract,
             signal=signal,
@@ -89,7 +95,7 @@ class MeanReversionService:
             ticker = raw_symbol.strip().upper().replace("-", "").replace("/", "")
             if ticker and ticker not in tickers:
                 tickers.append(ticker)
-        return [self.terminal(symbol=ticker) for ticker in (tickers or ["SPY"])[:8]]
+        return [self.terminal(symbol=ticker) for ticker in (tickers or ["SPY"])[:12]]
 
     def _resample(self, bars: list[Bar], group_size: int) -> list[Bar]:
         if not bars:

@@ -58,7 +58,9 @@ def strategy_dashboard(strategy_id: str, timeframe: str = "5Min") -> StrategyDas
     response_model=list[MeanReversionTerminalSnapshot],
     tags=["strategies"],
 )
-def mean_reversion_terminals(symbols: str = "SPY,QQQ,IWM") -> list[MeanReversionTerminalSnapshot]:
+def mean_reversion_terminals(
+    symbols: str = "SPY,QQQ,IWM,AAPL,MSFT,NVDA,AMZN,META,GOOGL,TSLA",
+) -> list[MeanReversionTerminalSnapshot]:
     return mean_reversion_service.terminals(symbols=symbols)
 
 
