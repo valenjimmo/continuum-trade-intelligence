@@ -7,16 +7,17 @@ import { DisabledPagesLink } from "@/components/disabled-pages-link";
 import { FactorMatrix } from "@/components/factor-matrix";
 import { LocalTime } from "@/components/local-time";
 import { RefreshButton } from "@/components/refresh-button";
+import { RegimeIntelligencePanel } from "@/components/regime-intelligence-panel";
 import { ReplayTable } from "@/components/replay-table";
 import { SymbolCard } from "@/components/symbol-card";
 import { ContinuationChart } from "@/charts/continuation-chart";
-import { getOverview } from "@/lib/api";
+import { getOverview, getRegimes } from "@/lib/api";
 import { trendTone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const { dashboard, alerts, replay } = await getOverview();
+  const [{ dashboard, alerts, replay }, regimes] = await Promise.all([getOverview(), getRegimes()]);
   const refreshSeconds = Number(process.env.NEXT_PUBLIC_DASHBOARD_REFRESH_SECONDS ?? dashboard.refresh_seconds ?? 15);
 
   return (
@@ -69,6 +70,8 @@ export default async function Home() {
             <SymbolCard key={symbol.ticker} symbol={symbol} />
           ))}
         </section>
+
+        <RegimeIntelligencePanel regimes={regimes} />
 
         <section className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="rounded-lg border border-line bg-panel p-4 shadow-panel">

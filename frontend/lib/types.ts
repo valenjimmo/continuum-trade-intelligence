@@ -1,6 +1,12 @@
 export type TrendState = "bullish" | "bearish" | "neutral" | "compression";
 export type RegimeType = "TREND_DAY" | "CHOP_DAY" | "BALANCED_DAY" | "EXPANSION_DAY" | "REVERSAL_DAY";
 export type Confidence = "LOW" | "MEDIUM" | "HIGH";
+export type IntradayRegime =
+  | "TREND_UP"
+  | "TREND_DOWN"
+  | "CHOP_MEAN_REVERSION"
+  | "COMPRESSION"
+  | "EXPANSION_MOMENTUM";
 
 export type ContinuationFactors = {
   vwap_respect: number;
@@ -86,6 +92,49 @@ export type AppSnapshot = {
   dashboard: DashboardSnapshot;
   alerts: AlertSummary[];
   replay: ReplayEvent[];
+};
+
+export type RegimeFeatureScores = {
+  vwap_alignment: number;
+  opening_range_acceptance: number;
+  ema_alignment: number;
+  candle_efficiency: number;
+  volume_expansion: number;
+  range_expansion: number;
+  trend_persistence: number;
+  compression: number;
+  relative_strength: number;
+};
+
+export type StrategyRecommendation = {
+  strategy_id: string;
+  name: string;
+  suitability_score: number;
+  rationale: string;
+};
+
+export type RegimeSnapshot = {
+  symbol: string;
+  timestamp: string;
+  timeframe: string;
+  price: number;
+  regime: IntradayRegime;
+  confidence: Confidence;
+  confidence_score: number;
+  direction_score: number;
+  feature_scores: RegimeFeatureScores;
+  strategy_recommendations: StrategyRecommendation[];
+  explanation: string;
+  engine_version: string;
+};
+
+export type RegimeDashboard = {
+  generated_at: string;
+  timeframe: string;
+  symbols: RegimeSnapshot[];
+  primary_regime: IntradayRegime;
+  market_confidence: Confidence;
+  market_confidence_score: number;
 };
 
 export type StrategyDefinition = {

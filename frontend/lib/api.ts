@@ -3,6 +3,8 @@ import type {
   AppSnapshot,
   DashboardSnapshot,
   MeanReversionTerminalSnapshot,
+  RegimeDashboard,
+  RegimeSnapshot,
   ReplayEvent,
   StrategyDashboard,
   StrategyDefinition
@@ -33,6 +35,16 @@ export function getAlerts() {
 
 export function getReplay() {
   return getJson<ReplayEvent[]>("/replay");
+}
+
+export function getRegimes(timeframe = "5Min") {
+  return getJson<RegimeDashboard>(`/regimes?timeframe=${encodeURIComponent(timeframe)}`);
+}
+
+export function getRegimeHistory(symbol: string, limit = 50) {
+  return getJson<RegimeSnapshot[]>(
+    `/regimes/${encodeURIComponent(symbol)}/history?limit=${limit}`
+  );
 }
 
 export function getStrategies() {

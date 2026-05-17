@@ -2,15 +2,18 @@ from fastapi import APIRouter
 
 from app.schemas.market import AlertSummary, AppSnapshot, DashboardSnapshot, ReplayEvent, SymbolAnalysis
 from app.schemas.mean_reversion import MeanReversionTerminalSnapshot
+from app.schemas.regime import RegimeDashboard, RegimeSnapshot
 from app.schemas.strategy import StrategyDashboard, StrategyDefinition
 from app.services.analysis_service import AnalysisService
 from app.services.mean_reversion_service import MeanReversionService
+from app.services.regime_service import RegimeService
 from app.services.strategy_service import StrategyService
 
 router = APIRouter()
 service = AnalysisService()
 strategy_service = StrategyService()
 mean_reversion_service = MeanReversionService()
+regime_service = RegimeService()
 
 
 @router.get("/health", tags=["system"])
@@ -41,6 +44,21 @@ def alerts() -> list[AlertSummary]:
 @router.get("/replay", response_model=list[ReplayEvent], tags=["replay"])
 def replay() -> list[ReplayEvent]:
     return service.replay_events()
+
+
+@router.get("/regimes", response_model=RegimeDashboard, tags=["regimes"])
+def regimes(timeframe: str = "5Min") -> RegimeDashboard:
+    return regime_service.dashboard(timeframe=timeframe)
+
+
+@router.get("/regimes/{symbol}", response_model=RegimeSnapshot, tags=["regimes"])
+def regime(symbol: str, timeframe: str = "5Min") -> RegimeSnapshot:
+    return regime_service.snapshot(symbol=symbol.upper(), timeframe=timeframe)
+
+
+@router.get("/regimes/{symbol}/history", response_model=list[RegimeSnapshot], tags=["regimes"])
+def regime_history(symbol: str, limit: int = 50) -> list[RegimeSnapshot]:
+    return regime_service.history(symbol=symbol.upper(), limit=limit)
 
 
 @router.get("/strategies", response_model=list[StrategyDefinition], tags=["strategies"])
