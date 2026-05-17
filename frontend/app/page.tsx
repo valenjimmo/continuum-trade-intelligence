@@ -3,6 +3,7 @@ import { BarChart3, Gauge, HelpCircle, RadioTower } from "lucide-react";
 import { AppTabs } from "@/components/app-tabs";
 import { AlertsPanel } from "@/components/alerts-panel";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { DataModeSwitch } from "@/components/data-mode-switch";
 import { DisabledPagesLink } from "@/components/disabled-pages-link";
 import { FactorMatrix } from "@/components/factor-matrix";
 import { LocalTime } from "@/components/local-time";
@@ -16,8 +17,23 @@ import { trendTone } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const [{ dashboard, alerts, replay }, regimes] = await Promise.all([getOverview(), getRegimes()]);
+type HomeProps = {
+  searchParams?: {
+    data_mode?: string;
+  };
+};
+
+function selectedDataMode(value?: string) {
+  return value === "alpaca" ? "alpaca" : value === "mock" ? "mock" : undefined;
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const dataMode = selectedDataMode(searchParams?.data_mode);
+  const [{ dashboard, alerts, replay }, regimes] = await Promise.all([
+    getOverview(dataMode),
+    getRegimes("5Min", dataMode)
+  ]);
+  const activeDataMode = dataMode ?? dashboard.data_mode;
   const refreshSeconds = Number(process.env.NEXT_PUBLIC_DASHBOARD_REFRESH_SECONDS ?? dashboard.refresh_seconds ?? 15);
 
   return (
@@ -65,13 +81,23 @@ export default async function Home() {
           <RefreshButton />
         </div>
 
+        <div className="flex flex-col gap-2 rounded-lg border border-line bg-panel p-4 shadow-panel md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold">Data Mode</h2>
+            <p className="text-sm text-ink/60">
+              Switch the dashboard request source without editing local environment files.
+            </p>
+          </div>
+          <DataModeSwitch activeMode={activeDataMode} />
+        </div>
+
         <section className="grid gap-4 lg:grid-cols-3">
           {dashboard.symbols.map((symbol) => (
             <SymbolCard key={symbol.ticker} symbol={symbol} />
           ))}
         </section>
 
-        <RegimeIntelligencePanel regimes={regimes} />
+        <RegimeIntelligencePanel regimes={regimes} dataMode={dashboard.data_mode} dataFeed={dashboard.data_feed} />
 
         <section className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
           <div className="rounded-lg border border-line bg-panel p-4 shadow-panel">

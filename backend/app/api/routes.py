@@ -1,5 +1,8 @@
+from typing import Optional
+
 from fastapi import APIRouter
 
+from app.core.config import get_settings
 from app.schemas.market import AlertSummary, AppSnapshot, DashboardSnapshot, ReplayEvent, SymbolAnalysis
 from app.schemas.mean_reversion import MeanReversionTerminalSnapshot
 from app.schemas.regime import RegimeDashboard, RegimeSnapshot
@@ -16,24 +19,43 @@ mean_reversion_service = MeanReversionService()
 regime_service = RegimeService()
 
 
+def settings_for_data_mode(data_mode: Optional[str] = None):
+    settings = get_settings()
+    if data_mode and data_mode.lower() in {"mock", "alpaca"}:
+        return settings.model_copy(update={"data_mode": data_mode.lower()})
+    return settings
+
+
+def analysis_for_data_mode(data_mode: Optional[str] = None) -> AnalysisService:
+    if data_mode:
+        return AnalysisService(settings_for_data_mode(data_mode))
+    return service
+
+
+def regimes_for_data_mode(data_mode: Optional[str] = None) -> RegimeService:
+    if data_mode:
+        return RegimeService(settings_for_data_mode(data_mode))
+    return regime_service
+
+
 @router.get("/health", tags=["system"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
 @router.get("/dashboard", response_model=DashboardSnapshot, tags=["analysis"])
-def dashboard() -> DashboardSnapshot:
-    return service.dashboard()
+def dashboard(data_mode: Optional[str] = None) -> DashboardSnapshot:
+    return analysis_for_data_mode(data_mode).dashboard()
 
 
 @router.get("/overview", response_model=AppSnapshot, tags=["analysis"])
-def overview() -> AppSnapshot:
-    return service.app_snapshot()
+def overview(data_mode: Optional[str] = None) -> AppSnapshot:
+    return analysis_for_data_mode(data_mode).app_snapshot()
 
 
 @router.get("/symbols/{symbol}", response_model=SymbolAnalysis, tags=["analysis"])
-def symbol_analysis(symbol: str) -> SymbolAnalysis:
-    return service.analyze_symbol(symbol.upper())
+def symbol_analysis(symbol: str, data_mode: Optional[str] = None) -> SymbolAnalysis:
+    return analysis_for_data_mode(data_mode).analyze_symbol(symbol.upper())
 
 
 @router.get("/alerts", response_model=list[AlertSummary], tags=["alerts"])
@@ -47,13 +69,13 @@ def replay() -> list[ReplayEvent]:
 
 
 @router.get("/regimes", response_model=RegimeDashboard, tags=["regimes"])
-def regimes(timeframe: str = "5Min") -> RegimeDashboard:
-    return regime_service.dashboard(timeframe=timeframe)
+def regimes(timeframe: str = "5Min", data_mode: Optional[str] = None) -> RegimeDashboard:
+    return regimes_for_data_mode(data_mode).dashboard(timeframe=timeframe)
 
 
 @router.get("/regimes/{symbol}", response_model=RegimeSnapshot, tags=["regimes"])
-def regime(symbol: str, timeframe: str = "5Min") -> RegimeSnapshot:
-    return regime_service.snapshot(symbol=symbol.upper(), timeframe=timeframe)
+def regime(symbol: str, timeframe: str = "5Min", data_mode: Optional[str] = None) -> RegimeSnapshot:
+    return regimes_for_data_mode(data_mode).snapshot(symbol=symbol.upper(), timeframe=timeframe)
 
 
 @router.get("/regimes/{symbol}/history", response_model=list[RegimeSnapshot], tags=["regimes"])

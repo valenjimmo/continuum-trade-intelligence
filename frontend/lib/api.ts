@@ -13,6 +13,10 @@ import type {
 const API_BASE =
   process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
+function dataModeQuery(dataMode?: string) {
+  return dataMode ? `data_mode=${encodeURIComponent(dataMode)}` : "";
+}
+
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, { next: { revalidate: 20 } });
   if (!response.ok) {
@@ -21,12 +25,14 @@ async function getJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function getDashboard() {
-  return getJson<DashboardSnapshot>("/dashboard");
+export function getDashboard(dataMode?: string) {
+  const query = dataModeQuery(dataMode);
+  return getJson<DashboardSnapshot>(`/dashboard${query ? `?${query}` : ""}`);
 }
 
-export function getOverview() {
-  return getJson<AppSnapshot>("/overview");
+export function getOverview(dataMode?: string) {
+  const query = dataModeQuery(dataMode);
+  return getJson<AppSnapshot>(`/overview${query ? `?${query}` : ""}`);
 }
 
 export function getAlerts() {
@@ -37,8 +43,10 @@ export function getReplay() {
   return getJson<ReplayEvent[]>("/replay");
 }
 
-export function getRegimes(timeframe = "5Min") {
-  return getJson<RegimeDashboard>(`/regimes?timeframe=${encodeURIComponent(timeframe)}`);
+export function getRegimes(timeframe = "5Min", dataMode?: string) {
+  const params = new URLSearchParams({ timeframe });
+  if (dataMode) params.set("data_mode", dataMode);
+  return getJson<RegimeDashboard>(`/regimes?${params.toString()}`);
 }
 
 export function getRegimeHistory(symbol: string, limit = 50) {

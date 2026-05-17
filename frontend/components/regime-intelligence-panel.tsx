@@ -1,4 +1,4 @@
-import { BadgeCheck, BrainCircuit, History, TrendingDown, TrendingUp } from "lucide-react";
+import { BadgeCheck, BrainCircuit, History, Info, TrendingDown, TrendingUp } from "lucide-react";
 import type { IntradayRegime, RegimeDashboard } from "@/lib/types";
 import { cn, scoreTone } from "@/lib/utils";
 
@@ -18,7 +18,38 @@ function RegimeIcon({ regime }: { regime: IntradayRegime }) {
   return <BrainCircuit className="h-4 w-4" />;
 }
 
-export function RegimeIntelligencePanel({ regimes }: { regimes: RegimeDashboard }) {
+function contextAssistant(regime: IntradayRegime) {
+  if (regime === "TREND_UP") {
+    return "Market context favors long continuation and controlled pullback entries. Avoid fading strength until evidence weakens.";
+  }
+  if (regime === "TREND_DOWN") {
+    return "Market context favors downside continuation or failed reclaim setups. Avoid early bottom-picking.";
+  }
+  if (regime === "COMPRESSION") {
+    return "Market context is coiling. Prepare levels and wait for confirmed expansion before chasing direction.";
+  }
+  if (regime === "EXPANSION_MOMENTUM") {
+    return "Market context favors momentum follow-through, but entries should still wait for acceptance and participation.";
+  }
+  return "Market context is two-way and noisy. Avoid chasing breaks; mean-reversion or no-trade posture is favored.";
+}
+
+function dataModeLabel(dataMode: string, dataFeed: string) {
+  if (dataMode.toLowerCase() === "mock") {
+    return "Mock local bars; not live market data.";
+  }
+  return `${dataMode} / ${dataFeed}`;
+}
+
+export function RegimeIntelligencePanel({
+  regimes,
+  dataMode,
+  dataFeed
+}: {
+  regimes: RegimeDashboard;
+  dataMode: string;
+  dataFeed: string;
+}) {
   return (
     <section className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -32,6 +63,22 @@ export function RegimeIntelligencePanel({ regimes }: { regimes: RegimeDashboard 
           <History className="h-4 w-4" />
           {regimes.timeframe}
         </span>
+      </div>
+
+      <div className="rounded-lg border border-line bg-panel p-4 text-sm text-ink/70 shadow-panel">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <p className="flex items-start gap-2">
+            <BrainCircuit className="mt-0.5 h-4 w-4 shrink-0 text-pine" />
+            <span>
+              Context assistant: the engine classifies the market environment and suggests the strategy posture that best fits it.
+              It is not an entry or exit signal.
+            </span>
+          </p>
+          <span className="inline-flex w-fit items-center gap-2 rounded-md border border-line bg-background px-3 py-2 text-xs font-medium text-ink/65">
+            <Info className="h-4 w-4" />
+            {dataModeLabel(dataMode, dataFeed)}
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -58,6 +105,9 @@ export function RegimeIntelligencePanel({ regimes }: { regimes: RegimeDashboard 
                     </span>
                   </div>
                   <p className="mt-2 text-sm text-ink/65">{snapshot.explanation}</p>
+                  <p className="mt-2 rounded-md border border-line bg-background p-3 text-sm text-ink/70">
+                    {contextAssistant(snapshot.regime)}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className={cn("text-2xl font-semibold", scoreTone(snapshot.confidence_score))}>
