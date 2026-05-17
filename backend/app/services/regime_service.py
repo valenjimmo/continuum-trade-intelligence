@@ -23,9 +23,9 @@ class RegimeService:
         self.snapshots = RegimeSnapshotRepository()
 
     def snapshot(self, symbol: str, timeframe: str = "5Min", persist: bool = True) -> RegimeSnapshot:
-        bars = self.market_data.get_intraday_bars(symbol)
+        bars = self.market_data.get_intraday_bars(symbol, timeframe=timeframe)
         peer_bars = {
-            tracked_symbol: self.market_data.get_intraday_bars(tracked_symbol)
+            tracked_symbol: self.market_data.get_intraday_bars(tracked_symbol, timeframe=timeframe)
             for tracked_symbol in self.settings.tracked_symbols
             if tracked_symbol != symbol
         }
@@ -36,7 +36,7 @@ class RegimeService:
 
     def dashboard(self, timeframe: str = "5Min", persist: bool = True) -> RegimeDashboard:
         bars_by_symbol = {
-            symbol: self.market_data.get_intraday_bars(symbol)
+            symbol: self.market_data.get_intraday_bars(symbol, timeframe=timeframe)
             for symbol in self.settings.tracked_symbols
         }
         snapshots = [

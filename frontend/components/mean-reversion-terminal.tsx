@@ -11,7 +11,7 @@ import {
   type IChartApi,
   type UTCTimestamp
 } from "lightweight-charts";
-import { GripVertical, HelpCircle, Maximize2, Plus, X } from "lucide-react";
+import { ArrowLeft, GripVertical, HelpCircle, Maximize2, Plus, X } from "lucide-react";
 import type {
   BollingerPoint,
   MeanReversionTerminalSnapshot,
@@ -268,6 +268,13 @@ function TickerControls({
         <span className="text-xs text-slate-500">{symbols.length} rows</span>
       </div>
       <div className="flex items-center gap-2">
+        <Link
+          href="/"
+          className="inline-flex h-8 items-center gap-1 rounded border border-slate-700 bg-slate-900 px-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-300 hover:bg-slate-800"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back
+        </Link>
         <form onSubmit={addTicker} className="flex items-center gap-2">
           <input
             value={value}

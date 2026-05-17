@@ -19,22 +19,30 @@ mean_reversion_service = MeanReversionService()
 regime_service = RegimeService()
 
 
-def settings_for_data_mode(data_mode: Optional[str] = None):
+COMMON_TIMEFRAMES = {"1Min", "5Min", "15Min", "30Min", "1Hour"}
+
+
+def normalized_timeframe(timeframe: Optional[str] = None) -> str:
+    return timeframe if timeframe in COMMON_TIMEFRAMES else "5Min"
+
+
+def settings_for_request(data_mode: Optional[str] = None, timeframe: Optional[str] = None):
     settings = get_settings()
+    updates = {"alpaca_bar_timeframe": normalized_timeframe(timeframe)}
     if data_mode and data_mode.lower() in {"mock", "alpaca"}:
-        return settings.model_copy(update={"data_mode": data_mode.lower()})
-    return settings
+        updates["data_mode"] = data_mode.lower()
+    return settings.model_copy(update=updates)
 
 
-def analysis_for_data_mode(data_mode: Optional[str] = None) -> AnalysisService:
-    if data_mode:
-        return AnalysisService(settings_for_data_mode(data_mode))
+def analysis_for_request(data_mode: Optional[str] = None, timeframe: Optional[str] = None) -> AnalysisService:
+    if data_mode or timeframe:
+        return AnalysisService(settings_for_request(data_mode, timeframe))
     return service
 
 
-def regimes_for_data_mode(data_mode: Optional[str] = None) -> RegimeService:
-    if data_mode:
-        return RegimeService(settings_for_data_mode(data_mode))
+def regimes_for_request(data_mode: Optional[str] = None, timeframe: Optional[str] = None) -> RegimeService:
+    if data_mode or timeframe:
+        return RegimeService(settings_for_request(data_mode, timeframe))
     return regime_service
 
 
@@ -44,18 +52,18 @@ def health() -> dict[str, str]:
 
 
 @router.get("/dashboard", response_model=DashboardSnapshot, tags=["analysis"])
-def dashboard(data_mode: Optional[str] = None) -> DashboardSnapshot:
-    return analysis_for_data_mode(data_mode).dashboard()
+def dashboard(data_mode: Optional[str] = None, timeframe: Optional[str] = None) -> DashboardSnapshot:
+    return analysis_for_request(data_mode, timeframe).dashboard()
 
 
 @router.get("/overview", response_model=AppSnapshot, tags=["analysis"])
-def overview(data_mode: Optional[str] = None) -> AppSnapshot:
-    return analysis_for_data_mode(data_mode).app_snapshot()
+def overview(data_mode: Optional[str] = None, timeframe: Optional[str] = None) -> AppSnapshot:
+    return analysis_for_request(data_mode, timeframe).app_snapshot()
 
 
 @router.get("/symbols/{symbol}", response_model=SymbolAnalysis, tags=["analysis"])
-def symbol_analysis(symbol: str, data_mode: Optional[str] = None) -> SymbolAnalysis:
-    return analysis_for_data_mode(data_mode).analyze_symbol(symbol.upper())
+def symbol_analysis(symbol: str, data_mode: Optional[str] = None, timeframe: Optional[str] = None) -> SymbolAnalysis:
+    return analysis_for_request(data_mode, timeframe).analyze_symbol(symbol.upper())
 
 
 @router.get("/alerts", response_model=list[AlertSummary], tags=["alerts"])
@@ -70,12 +78,17 @@ def replay() -> list[ReplayEvent]:
 
 @router.get("/regimes", response_model=RegimeDashboard, tags=["regimes"])
 def regimes(timeframe: str = "5Min", data_mode: Optional[str] = None) -> RegimeDashboard:
-    return regimes_for_data_mode(data_mode).dashboard(timeframe=timeframe)
+    selected_timeframe = normalized_timeframe(timeframe)
+    return regimes_for_request(data_mode, selected_timeframe).dashboard(timeframe=selected_timeframe)
 
 
 @router.get("/regimes/{symbol}", response_model=RegimeSnapshot, tags=["regimes"])
 def regime(symbol: str, timeframe: str = "5Min", data_mode: Optional[str] = None) -> RegimeSnapshot:
-    return regimes_for_data_mode(data_mode).snapshot(symbol=symbol.upper(), timeframe=timeframe)
+    selected_timeframe = normalized_timeframe(timeframe)
+    return regimes_for_request(data_mode, selected_timeframe).snapshot(
+        symbol=symbol.upper(),
+        timeframe=selected_timeframe,
+    )
 
 
 @router.get("/regimes/{symbol}/history", response_model=list[RegimeSnapshot], tags=["regimes"])

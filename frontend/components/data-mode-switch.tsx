@@ -17,7 +17,7 @@ const modes = [
   }
 ];
 
-export function DataModeSwitch({ activeMode }: { activeMode: string }) {
+export function DataModeSwitch({ activeMode, timeframe }: { activeMode: string; timeframe: string }) {
   return (
     <div className="flex flex-wrap items-center gap-2" aria-label="Data mode">
       {modes.map((mode) => {
@@ -27,7 +27,7 @@ export function DataModeSwitch({ activeMode }: { activeMode: string }) {
         return (
           <Link
             key={mode.id}
-            href={`/?data_mode=${mode.id}`}
+            href={`/?data_mode=${mode.id}&timeframe=${timeframe}`}
             className={cn(
               "inline-flex min-h-10 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition",
               active

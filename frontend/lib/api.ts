@@ -13,8 +13,11 @@ import type {
 const API_BASE =
   process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
-function dataModeQuery(dataMode?: string) {
-  return dataMode ? `data_mode=${encodeURIComponent(dataMode)}` : "";
+function requestQuery(dataMode?: string, timeframe?: string) {
+  const params = new URLSearchParams();
+  if (dataMode) params.set("data_mode", dataMode);
+  if (timeframe) params.set("timeframe", timeframe);
+  return params.toString();
 }
 
 async function getJson<T>(path: string): Promise<T> {
@@ -25,13 +28,13 @@ async function getJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function getDashboard(dataMode?: string) {
-  const query = dataModeQuery(dataMode);
+export function getDashboard(dataMode?: string, timeframe?: string) {
+  const query = requestQuery(dataMode, timeframe);
   return getJson<DashboardSnapshot>(`/dashboard${query ? `?${query}` : ""}`);
 }
 
-export function getOverview(dataMode?: string) {
-  const query = dataModeQuery(dataMode);
+export function getOverview(dataMode?: string, timeframe?: string) {
+  const query = requestQuery(dataMode, timeframe);
   return getJson<AppSnapshot>(`/overview${query ? `?${query}` : ""}`);
 }
 

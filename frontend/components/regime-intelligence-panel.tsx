@@ -10,6 +10,14 @@ const regimeTone: Record<IntradayRegime, string> = {
   EXPANSION_MOMENTUM: "bg-pine/10 text-pine border-pine/20"
 };
 
+const regimeMeanings: Array<{ regime: IntradayRegime; meaning: string }> = [
+  { regime: "COMPRESSION", meaning: "prepare, wait for expansion" },
+  { regime: "TREND_UP", meaning: "favor long continuation/pullback strategies" },
+  { regime: "TREND_DOWN", meaning: "favor short continuation/failure-reclaim strategies" },
+  { regime: "CHOP_MEAN_REVERSION", meaning: "avoid chasing, favor fades/extreme reversion" },
+  { regime: "EXPANSION_MOMENTUM", meaning: "favor confirmed breakout/momentum continuation" }
+];
+
 function RegimeIcon({ regime }: { regime: IntradayRegime }) {
   if (regime === "TREND_DOWN") return <TrendingDown className="h-4 w-4" />;
   if (regime === "TREND_UP" || regime === "EXPANSION_MOMENTUM") {
@@ -61,12 +69,12 @@ export function RegimeIntelligencePanel({
         </div>
         <span className="inline-flex w-fit items-center gap-2 rounded-md border border-line bg-panel px-3 py-2 text-sm text-ink/70">
           <History className="h-4 w-4" />
-          {regimes.timeframe}
+          Bar timeframe {regimes.timeframe}
         </span>
       </div>
 
       <div className="rounded-lg border border-line bg-panel p-4 text-sm text-ink/70 shadow-panel">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <p className="flex items-start gap-2">
             <BrainCircuit className="mt-0.5 h-4 w-4 shrink-0 text-pine" />
             <span>
@@ -78,6 +86,21 @@ export function RegimeIntelligencePanel({
             <Info className="h-4 w-4" />
             {dataModeLabel(dataMode, dataFeed)}
           </span>
+        </div>
+        <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-5">
+          {regimeMeanings.map((item) => (
+            <div key={item.regime} className="rounded-md border border-line bg-background p-3">
+              <span
+                className={cn(
+                  "inline-flex rounded-full border px-2 py-1 text-[11px] font-semibold",
+                  regimeTone[item.regime]
+                )}
+              >
+                {item.regime}
+              </span>
+              <p className="mt-2 text-xs leading-5 text-ink/65">{item.meaning}</p>
+            </div>
+          ))}
         </div>
       </div>
 

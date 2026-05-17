@@ -11,6 +11,7 @@ import { RefreshButton } from "@/components/refresh-button";
 import { RegimeIntelligencePanel } from "@/components/regime-intelligence-panel";
 import { ReplayTable } from "@/components/replay-table";
 import { SymbolCard } from "@/components/symbol-card";
+import { TimeframeSelect } from "@/components/timeframe-select";
 import { ContinuationChart } from "@/charts/continuation-chart";
 import { getOverview, getRegimes } from "@/lib/api";
 import { trendTone } from "@/lib/utils";
@@ -20,18 +21,26 @@ export const dynamic = "force-dynamic";
 type HomeProps = {
   searchParams?: {
     data_mode?: string;
+    timeframe?: string;
   };
 };
+
+const commonTimeframes = ["1Min", "5Min", "15Min", "30Min", "1Hour"];
 
 function selectedDataMode(value?: string) {
   return value === "alpaca" ? "alpaca" : value === "mock" ? "mock" : undefined;
 }
 
+function selectedTimeframe(value?: string) {
+  return value && commonTimeframes.includes(value) ? value : "5Min";
+}
+
 export default async function Home({ searchParams }: HomeProps) {
   const dataMode = selectedDataMode(searchParams?.data_mode);
+  const timeframe = selectedTimeframe(searchParams?.timeframe);
   const [{ dashboard, alerts, replay }, regimes] = await Promise.all([
-    getOverview(dataMode),
-    getRegimes("5Min", dataMode)
+    getOverview(dataMode, timeframe),
+    getRegimes(timeframe, dataMode)
   ]);
   const activeDataMode = dataMode ?? dashboard.data_mode;
   const refreshSeconds = Number(process.env.NEXT_PUBLIC_DASHBOARD_REFRESH_SECONDS ?? dashboard.refresh_seconds ?? 15);
@@ -76,19 +85,22 @@ export default async function Home({ searchParams }: HomeProps) {
             <span className="rounded-full border border-line bg-panel px-2 py-1 text-xs font-medium uppercase tracking-[0.08em]">
               {dashboard.data_mode} / {dashboard.data_feed}
             </span>
-            <span className="text-xs">Auto-refresh {refreshSeconds}s</span>
+            <span className="text-xs">Page refresh every {refreshSeconds}s</span>
           </div>
           <RefreshButton />
         </div>
 
-        <div className="flex flex-col gap-2 rounded-lg border border-line bg-panel p-4 shadow-panel md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 rounded-lg border border-line bg-panel p-4 shadow-panel lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="text-sm font-semibold">Data Mode</h2>
+            <h2 className="text-sm font-semibold">Data Source and Bar Timeframe</h2>
             <p className="text-sm text-ink/60">
-              Switch the dashboard request source without editing local environment files.
+              Bar timeframe controls the candle interval analyzed by the regime engine. Page refresh is separate.
             </p>
           </div>
-          <DataModeSwitch activeMode={activeDataMode} />
+          <div className="flex flex-wrap items-center gap-2">
+            <DataModeSwitch activeMode={activeDataMode} timeframe={timeframe} />
+            <TimeframeSelect activeTimeframe={timeframe} />
+          </div>
         </div>
 
         <section className="grid gap-4 lg:grid-cols-3">

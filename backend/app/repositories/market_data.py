@@ -11,6 +11,14 @@ from app.schemas.market import Bar
 
 logger = logging.getLogger(__name__)
 
+TIMEFRAME_MINUTES = {
+    "1Min": 1,
+    "5Min": 5,
+    "15Min": 15,
+    "30Min": 30,
+    "1Hour": 60,
+}
+
 
 class MarketDataRepository:
     """Boundary for market data providers."""
@@ -18,28 +26,33 @@ class MarketDataRepository:
     def __init__(self, settings: Optional[Settings] = None) -> None:
         self.settings = settings or get_settings()
 
-    def get_intraday_bars(self, symbol: str, periods: int = 96) -> list[Bar]:
+    def get_intraday_bars(self, symbol: str, periods: int = 96, timeframe: Optional[str] = None) -> list[Bar]:
+        selected_timeframe = self._normalize_timeframe(timeframe)
         if self.settings.data_mode.lower() == "alpaca":
             try:
-                return self._get_alpaca_bars(symbol, min(periods, self.settings.alpaca_bars_limit))
+                return self._get_alpaca_bars(
+                    symbol,
+                    min(periods, self.settings.alpaca_bars_limit),
+                    selected_timeframe,
+                )
             except Exception as exc:
                 logger.warning("Falling back to mock bars for %s after Alpaca error: %s", symbol, exc)
 
-        return self._get_mock_bars(symbol, periods)
+        return self._get_mock_bars(symbol, periods, selected_timeframe)
 
-    def _get_alpaca_bars(self, symbol: str, periods: int) -> list[Bar]:
+    def _get_alpaca_bars(self, symbol: str, periods: int, timeframe: str) -> list[Bar]:
         if not self.settings.alpaca_api_key_id or not self.settings.alpaca_api_secret_key:
             raise ValueError("Missing Alpaca API credentials")
 
         end = datetime.now(timezone.utc).replace(second=0, microsecond=0)
-        start = end - timedelta(days=5)
+        start = end - timedelta(days=self._lookback_days(timeframe, periods))
         url = f"https://data.alpaca.markets/v2/stocks/{symbol}/bars"
         headers = {
             "APCA-API-KEY-ID": self.settings.alpaca_api_key_id,
             "APCA-API-SECRET-KEY": self.settings.alpaca_api_secret_key,
         }
         params = {
-            "timeframe": self.settings.alpaca_bar_timeframe,
+            "timeframe": timeframe,
             "start": start.isoformat().replace("+00:00", "Z"),
             "end": end.isoformat().replace("+00:00", "Z"),
             "limit": periods,
@@ -70,14 +83,15 @@ class MarketDataRepository:
             for item in raw_bars[-periods:]
         ]
 
-    def _get_mock_bars(self, symbol: str, periods: int) -> list[Bar]:
+    def _get_mock_bars(self, symbol: str, periods: int, timeframe: str) -> list[Bar]:
         seed = sum(ord(char) for char in symbol)
         rng = Random(seed)
         base = {"SPY": 522.0, "QQQ": 445.0, "IWM": 205.0, "VIX": 17.4, "DXY": 104.2, "TNX": 4.45}.get(
             symbol, 100.0
         )
         now = datetime.now(timezone.utc).replace(second=0, microsecond=0)
-        start = now - timedelta(minutes=5 * (periods - 1))
+        interval_minutes = TIMEFRAME_MINUTES[timeframe]
+        start = now - timedelta(minutes=interval_minutes * (periods - 1))
         bars: list[Bar] = []
         price = base + rng.uniform(-1.5, 1.5)
 
@@ -104,3 +118,12 @@ class MarketDataRepository:
             price = close
 
         return bars
+
+    def _normalize_timeframe(self, timeframe: Optional[str]) -> str:
+        candidate = timeframe or self.settings.alpaca_bar_timeframe
+        return candidate if candidate in TIMEFRAME_MINUTES else "5Min"
+
+    def _lookback_days(self, timeframe: str, periods: int) -> int:
+        minutes = TIMEFRAME_MINUTES[timeframe] * periods
+        calendar_days = max(2, int(minutes / 390) + 3)
+        return min(30, calendar_days)
