@@ -5,13 +5,20 @@ export const dynamic = "force-dynamic";
 
 type MeanReversionPageProps = {
   searchParams?: {
+    data_mode?: string;
     symbols?: string;
   };
 };
 
+function selectedDataMode(value?: string) {
+  return value === "alpaca" ? "alpaca" : value === "mock" ? "mock" : undefined;
+}
+
 export default async function MeanReversionPage({ searchParams }: MeanReversionPageProps) {
   const symbols = searchParams?.symbols ?? "SPY,QQQ,IWM,AAPL,MSFT,NVDA,AMZN,META,GOOGL,TSLA";
-  const snapshots = await getMeanReversionTerminals(symbols);
+  const dataMode = selectedDataMode(searchParams?.data_mode);
+  const snapshots = await getMeanReversionTerminals(symbols, dataMode);
+  const activeDataMode = dataMode ?? snapshots[0]?.data_mode ?? "mock";
 
-  return <MeanReversionTerminal snapshots={snapshots} />;
+  return <MeanReversionTerminal snapshots={snapshots} activeDataMode={activeDataMode} />;
 }

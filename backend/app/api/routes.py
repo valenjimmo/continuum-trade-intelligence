@@ -113,7 +113,10 @@ def strategy_dashboard(strategy_id: str, timeframe: str = "5Min") -> StrategyDas
 )
 def mean_reversion_terminals(
     symbols: str = "SPY,QQQ,IWM,AAPL,MSFT,NVDA,AMZN,META,GOOGL,TSLA",
+    data_mode: Optional[str] = None,
 ) -> list[MeanReversionTerminalSnapshot]:
+    if data_mode:
+        return MeanReversionService(settings_for_request(data_mode)).terminals(symbols=symbols)
     return mean_reversion_service.terminals(symbols=symbols)
 
 
@@ -122,5 +125,7 @@ def mean_reversion_terminals(
     response_model=MeanReversionTerminalSnapshot,
     tags=["strategies"],
 )
-def mean_reversion_terminal(symbol: str) -> MeanReversionTerminalSnapshot:
+def mean_reversion_terminal(symbol: str, data_mode: Optional[str] = None) -> MeanReversionTerminalSnapshot:
+    if data_mode:
+        return MeanReversionService(settings_for_request(data_mode)).terminal(symbol=symbol)
     return mean_reversion_service.terminal(symbol=symbol)

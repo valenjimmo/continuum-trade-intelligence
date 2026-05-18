@@ -11,7 +11,7 @@ import {
   type IChartApi,
   type UTCTimestamp
 } from "lightweight-charts";
-import { ArrowLeft, GripVertical, HelpCircle, Maximize2, Plus, X } from "lucide-react";
+import { ArrowLeft, Database, HelpCircle, GripVertical, Maximize2, Plus, Radio, X } from "lucide-react";
 import type {
   BollingerPoint,
   MeanReversionTerminalSnapshot,
@@ -246,12 +246,16 @@ function SignalBox({ snapshot }: { snapshot: MeanReversionTerminalSnapshot }) {
 
 function TickerControls({
   symbols,
-  setSymbols
+  setSymbols,
+  activeDataMode
 }: {
   symbols: string[];
   setSymbols: (symbols: string[]) => void;
+  activeDataMode: string;
 }) {
   const [value, setValue] = useState("");
+  const modeHref = (mode: string) =>
+    `/strategies/mean-reversion?symbols=${encodeURIComponent(symbols.join(","))}&data_mode=${mode}`;
 
   function addTicker(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -268,6 +272,30 @@ function TickerControls({
         <span className="text-xs text-slate-500">{symbols.length} rows</span>
       </div>
       <div className="flex items-center gap-2">
+        <Link
+          href={modeHref("mock")}
+          className={cn(
+            "inline-flex h-8 items-center gap-1 rounded border px-2 text-xs font-bold uppercase tracking-[0.08em]",
+            activeDataMode === "mock"
+              ? "border-emerald-500/50 bg-emerald-950 text-emerald-100"
+              : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+          )}
+        >
+          <Database className="h-3.5 w-3.5" />
+          Mock
+        </Link>
+        <Link
+          href={modeHref("alpaca")}
+          className={cn(
+            "inline-flex h-8 items-center gap-1 rounded border px-2 text-xs font-bold uppercase tracking-[0.08em]",
+            activeDataMode === "alpaca"
+              ? "border-emerald-500/50 bg-emerald-950 text-emerald-100"
+              : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+          )}
+        >
+          <Radio className="h-3.5 w-3.5" />
+          Alpaca
+        </Link>
         <Link
           href="/"
           className="inline-flex h-8 items-center gap-1 rounded border border-slate-700 bg-slate-900 px-2 text-xs font-bold uppercase tracking-[0.08em] text-slate-300 hover:bg-slate-800"
@@ -388,7 +416,13 @@ function TerminalRow({
   );
 }
 
-export function MeanReversionTerminal({ snapshots }: { snapshots: MeanReversionTerminalSnapshot[] }) {
+export function MeanReversionTerminal({
+  snapshots,
+  activeDataMode
+}: {
+  snapshots: MeanReversionTerminalSnapshot[];
+  activeDataMode: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const symbols = snapshots.map((snapshot) => snapshot.symbol);
@@ -439,7 +473,15 @@ export function MeanReversionTerminal({ snapshots }: { snapshots: MeanReversionT
   return (
     <div className="min-h-screen overflow-x-auto" style={{ background: terminalBg }}>
       <div className="flex min-h-screen min-w-max flex-col justify-center gap-3 p-5">
-        <TickerControls symbols={symbols} setSymbols={setSymbols} />
+        <TickerControls symbols={symbols} setSymbols={setSymbols} activeDataMode={activeDataMode} />
+        <div className="flex min-w-max items-center justify-between gap-4 rounded border border-slate-800 bg-[#161b22] px-3 py-2 text-xs text-slate-400">
+          <span>
+            Data mode: <span className="font-bold uppercase text-slate-200">{activeDataMode}</span>
+          </span>
+          <span>
+            Contract selection: Alpaca snapshots when available; otherwise synthetic 14 DTE, near-the-money, delta-based estimate.
+          </span>
+        </div>
         {snapshots.map((snapshot) => (
           <TerminalRow
             key={snapshot.symbol}

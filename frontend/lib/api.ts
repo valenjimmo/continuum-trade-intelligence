@@ -66,12 +66,17 @@ export function getStrategyDashboard(strategyId = "ema_9_21", timeframe = "5Min"
   return getJson<StrategyDashboard>(`/strategies/${strategyId}/dashboard?timeframe=${timeframe}`);
 }
 
-export function getMeanReversionTerminal(symbol = "SPY") {
-  return getJson<MeanReversionTerminalSnapshot>(`/strategies/mean-reversion/${encodeURIComponent(symbol)}`);
+export function getMeanReversionTerminal(symbol = "SPY", dataMode?: string) {
+  const query = requestQuery(dataMode);
+  return getJson<MeanReversionTerminalSnapshot>(
+    `/strategies/mean-reversion/${encodeURIComponent(symbol)}${query ? `?${query}` : ""}`
+  );
 }
 
-export function getMeanReversionTerminals(symbols = "SPY,QQQ,IWM") {
+export function getMeanReversionTerminals(symbols = "SPY,QQQ,IWM", dataMode?: string) {
+  const params = new URLSearchParams({ symbols });
+  if (dataMode) params.set("data_mode", dataMode);
   return getJson<MeanReversionTerminalSnapshot[]>(
-    `/strategies/mean-reversion?symbols=${encodeURIComponent(symbols)}`
+    `/strategies/mean-reversion?${params.toString()}`
   );
 }
